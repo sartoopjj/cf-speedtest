@@ -11,8 +11,8 @@ func main() {
 	result, err := speedtest.NewSpeedTester(speedtest.SpeedTestConfig{
 		CloudflareIP: "162.159.140.221",
 		// CloudflareIP: "", // Use DNS
-		PacketSize:  500_000, // 5Kb
-		PacketCount: 50,
+		PacketSize:  100 * 1024 * 1024, // MB
+		PacketCount: 5,
 		Verbose:     true,
 	}).RunTest()
 
