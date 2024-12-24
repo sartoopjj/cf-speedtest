@@ -91,10 +91,7 @@ func (st *SpeedTester) testUpload() (float64, time.Duration, error) {
 	var totalLatency time.Duration
 
 	for i := 0; i < st.config.PacketCount; i++ {
-
-		req, err := http.NewRequest("POST", uploadURL, strings.NewReader(string(rawBody)))
-		req.Header.Add("Content-Type", "text/plain;charset=UTF-8")
-
+		req, err := http.NewRequest("POST", uploadURL, bytes.NewReader(rawBody))
 		if err != nil {
 			return 0, 0, fmt.Errorf("failed to create upload request: %w", err)
 		}
@@ -105,13 +102,14 @@ func (st *SpeedTester) testUpload() (float64, time.Duration, error) {
 		if err != nil {
 			return 0, 0, fmt.Errorf("failed to perform upload request: %w", err)
 		}
+		resp.Body.Close()
 
-		latency := time.Since(startTime)
+		duration := time.Since(startTime)
 
-		totalLatency += (latency - st.getServerTiming(&resp.Header))
+		throughput := (float64(st.config.PacketSize*8) / duration.Seconds()) / (1024 * 1024)
 
 		if st.config.Verbose {
-			fmt.Printf("Upload %d bytes in %s (server time: %s)\n", st.config.PacketSize, latency, st.getServerTiming(&resp.Header))
+			fmt.Printf("Upload %d bytes in %s, throughput: %.2fMb/s\n", st.config.PacketSize, duration, throughput)
 		}
 	}
 	speedMb := (float64(st.config.PacketSize*st.config.PacketCount) / totalLatency.Seconds()) / float64(125000)
